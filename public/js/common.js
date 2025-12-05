@@ -48,7 +48,7 @@ function initUserInfo() {
 // API запити
 async function apiRequest(url, options = {}) {
     const token = localStorage.getItem('authToken');
-    
+
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('uk-UA', {
         day: '2-digit',
-        month: '2-digit', 
+        month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
@@ -126,28 +126,9 @@ function formatPrice(price) {
     return parseFloat(price || 0).toFixed(2) + ' грн';
 }
 
-// Закриття модального вікна
-function closeModal() {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => modal.style.display = 'none');
-}
-
-// Підтвердження дії
-function confirm(message) {
-    return window.confirm(message);
-}
-
 // Ініціалізація при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', function() {
-    initUserInfo();
-    
-    // Закриття модальних вікон при кліку на overlay
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            closeModal();
-        }
-        if (e.target.classList.contains('close')) {
-            closeModal();
-        }
-    });
+    if (document.getElementById('userName')) {
+        initUserInfo();
+    }
 });

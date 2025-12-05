@@ -5,21 +5,17 @@ class UserModel {
     static async createUser(userData) {
         const connection = await getConnection();
         const hashedPassword = await bcrypt.hash(userData.password, 10);
-        
+
         const [result] = await connection.execute(
-            'INSERT INTO users (name, email, password, phone, address, city, region, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
             [
                 userData.name,
                 userData.email,
                 hashedPassword,
-                userData.phone,
-                userData.address,
-                userData.city,
-                userData.region,
                 userData.role
             ]
         );
-        
+
         return result.insertId;
     }
 
@@ -29,34 +25,27 @@ class UserModel {
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
-        
+
         return rows[0];
     }
 
     static async findUserById(id) {
         const connection = await getConnection();
         const [rows] = await connection.execute(
-            'SELECT id, name, email, phone, address, city, region, role, created_at FROM users WHERE id = ?',
+            'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
             [id]
         );
-        
+
         return rows[0];
     }
 
     static async updateUser(id, userData) {
         const connection = await getConnection();
         const [result] = await connection.execute(
-            'UPDATE users SET name = ?, phone = ?, address = ?, city = ?, region = ? WHERE id = ?',
-            [
-                userData.name,
-                userData.phone,
-                userData.address,
-                userData.city,
-                userData.region,
-                id
-            ]
+            'UPDATE users SET name = ? WHERE id = ?',
+            [userData.name, id]
         );
-        
+
         return result.affectedRows > 0;
     }
 

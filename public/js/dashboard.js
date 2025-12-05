@@ -1,45 +1,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Перевірка авторизації
-    const token = localStorage.getItem('authToken');
-    const userInfo = localStorage.getItem('userInfo');
-
-    if (!token || !userInfo) {
-        window.location.href = '/';
-        return;
-    }
-
-    const user = JSON.parse(userInfo);
-    
-    // Відображення інформації про користувача
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userRole').textContent = `(${getRoleDisplayName(user.role)})`;
+    const user = checkAuth();
+    if (!user) return;
 
     // Завантаження даних для dashboard
     loadDashboardData();
 });
 
-function getRoleDisplayName(role) {
-    const roles = {
-        'admin': 'Адміністратор',
-        'manager': 'Менеджер',
-        'employee': 'Співробітник'
-    };
-    return roles[role] || role;
-}
-
 async function loadDashboardData() {
-    const token = localStorage.getItem('authToken');
-    
     try {
-        // Тут буде завантаження статистики після реалізації API
-        console.log('Dashboard data loading...');
+        // Отримуємо базові дані
+        const [products, categories, suppliers] = await Promise.all([
+            apiRequest('/api/products'),
+            apiRequest('/api/categories'),
+            apiRequest('/api/suppliers')
+        ]);
+
+        // Оновлюємо статистику
+        document.getElementById('totalProducts').textContent = products?.data?.length || 0;
+        document.getElementById('totalCategories').textContent = categories?.data?.length || 0;
+        document.getElementById('totalSuppliers').textContent = suppliers?.data?.length || 0;
+
+        // Підраховуємо товари з малими залишками
+        const lowStockProducts = products?.data?.filter(p => p.stock_quantity <= p.min_stock_level) || [];
+        document.getElementById('lowStockCount').textContent = lowStockProducts.length;
+
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+        // Залишаємо значення по замовчуванню
     }
-}
-
-function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
-    window.location.href = '/';
 }

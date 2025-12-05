@@ -4,70 +4,6 @@ const UserModel = require('../models/user.model');
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-exports.register = async (req, res) => {
-    try {
-        const { name, email, password, phone, address, city, region, role } = req.body;
-
-        if (!name || !email || !password || !role) {
-            return res.status(400).json({
-                success: false,
-                message: "Ім'я, електронна пошта, пароль та роль є обов'язковими полями",
-            });
-        }
-
-        const existingUser = await UserModel.findUserByEmail(email);
-        if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                message: "Користувач з такою електронною адресою вже існує",
-            });
-        }
-
-        if (role !== 'admin' && role !== 'manager' && role !== 'employee') {
-            return res.status(400).json({
-                success: false,
-                message: "Роль має бути 'admin', 'manager' або 'employee'",
-            });
-        }
-
-        const userId = await UserModel.createUser({
-            name,
-            email,
-            password,
-            phone: phone || null,
-            address: address || null,
-            city: city || null,
-            region: region || null,
-            role
-        });
-
-        const token = jwt.sign(
-            { id: userId, email, role },
-            JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN }
-        );
-
-        res.status(201).json({
-            success: true,
-            message: "Користувача успішно зареєстровано",
-            token,
-            user: {
-                id: userId,
-                name,
-                email,
-                role
-            }
-        });
-    } catch (error) {
-        console.error("Error in register API:", error);
-        res.status(500).json({
-            success: false,
-            message: "Помилка при реєстрації користувача",
-            error: error.message,
-        });
-    }
-};
-
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -148,9 +84,52 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+exports.register = async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
+
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({
+                success: false,
+                message: "Всі поля є обов'язковими",
+            });
+        }
+
+        const existingUser = await UserModel.findUserByEmail(email);
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "Користувач з такою електронною адресою вже існує",
+            });
+        }
+
+        const userId = await UserModel.createUser({ name, email, password, role });
+
+        const token = jwt.sign(
+            { id: userId, email, role },
+            JWT_SECRET,
+            { expiresIn: JWT_EXPIRES_IN }
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Користувача успішно зареєстровано",
+            token,
+            user: { id: userId, name, email, role }
+        });
+    } catch (error) {
+        console.error("Error in register API:", error);
+        res.status(500).json({
+            success: false,
+            message: "Помилка при реєстрації користувача",
+            error: error.message,
+        });
+    }
+};
+
 exports.updateProfile = async (req, res) => {
     try {
-        const { name, phone, address, city, region } = req.body;
+        const { name } = req.body;
 
         if (!name) {
             return res.status(400).json({
@@ -159,13 +138,7 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-        const updated = await UserModel.updateUser(req.user.id, {
-            name,
-            phone: phone || null,
-            address: address || null,
-            city: city || null,
-            region: region || null
-        });
+        const updated = await UserModel.updateUser(req.user.id, { name });
 
         if (!updated) {
             return res.status(404).json({
