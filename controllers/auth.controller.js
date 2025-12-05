@@ -1,5 +1,3 @@
-// controllers/auth.controller
-
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/user.model');
 
@@ -25,10 +23,10 @@ exports.register = async (req, res) => {
             });
         }
 
-        if (role !== 'requester' && role !== 'volunteer') {
+        if (role !== 'admin' && role !== 'manager' && role !== 'employee') {
             return res.status(400).json({
                 success: false,
-                message: "Роль має бути 'requester' або 'volunteer'",
+                message: "Роль має бути 'admin', 'manager' або 'employee'",
             });
         }
 

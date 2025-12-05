@@ -1,5 +1,3 @@
-// middlewares/auth.middleware
-
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/user.model');
 
@@ -42,21 +40,21 @@ exports.authenticateUser = async (req, res, next) => {
     }
 };
 
-exports.isRequester = (req, res, next) => {
-    if (req.user.role !== 'requester') {
+exports.isAdmin = (req, res, next) => {
+    if (req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
-            message: "Доступ дозволено тільки користувачам з роллю 'requester'"
+            message: "Доступ дозволено тільки адміністраторам"
         });
     }
     next();
 };
 
-exports.isVolunteer = (req, res, next) => {
-    if (req.user.role !== 'volunteer') {
+exports.isManager = (req, res, next) => {
+    if (req.user.role !== 'manager' && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
-            message: "Доступ дозволено тільки користувачам з роллю 'volunteer'"
+            message: "Доступ дозволено тільки менеджерам та адміністраторам"
         });
     }
     next();
